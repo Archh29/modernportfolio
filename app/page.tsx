@@ -696,8 +696,8 @@ export default function Home() {
                 image: "portfolio.png",
                 tags: ["Next.js", "Framer Motion", "Tailwind CSS"],
                 gradient: "from-purple-500 to-pink-600",
-                githubUrl: "https://github.com/Archh29/portfolio-website",
-                demoUrl: "https://francis-portfolio.vercel.app",
+                githubUrl: "https://github.com/Archh29/modernportfolio",
+                demoUrl: "https://modernportfolio-navy.vercel.app/",
               },
             ].map((project, index) => (
               <motion.div
