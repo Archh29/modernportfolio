@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence, useScroll, useSpring, type Variants } from "framer-motion"
 import {
@@ -16,6 +18,7 @@ import {
   Code,
   Palette,
   Zap,
+  Send,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -24,6 +27,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useMobile } from "@/hooks/use-mobile"
+import { useToast } from "@/hooks/use-toast"
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("home")
@@ -32,6 +36,15 @@ export default function Home() {
   const [mounted, setMounted] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const isMobile = useMobile()
+  const { toast } = useToast()
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 })
@@ -125,6 +138,47 @@ export default function Home() {
         ease: "easeInOut",
       },
     },
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (response.ok) {
+        toast({
+          title: "Message sent successfully!",
+          description: "Thank you for your message. I'll get back to you soon.",
+        })
+        setFormData({ name: "", email: "", subject: "", message: "" })
+      } else {
+        throw new Error("Failed to send message")
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to send message",
+        description: "Please try again or contact me directly via email.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -697,7 +751,7 @@ export default function Home() {
                 tags: ["Next.js", "Framer Motion", "Tailwind CSS"],
                 gradient: "from-purple-500 to-pink-600",
                 githubUrl: "https://github.com/Archh29/modernportfolio",
-                demoUrl: "https://fuportfolio-navy.vercel.app/",
+                demoUrl: "https://modernportfolio-navy.vercel.app/",
               },
             ].map((project, index) => (
               <motion.div
@@ -873,6 +927,7 @@ export default function Home() {
               className="flex-1"
             >
               <motion.form
+                onSubmit={handleSubmit}
                 className="space-y-6 bg-card/50 backdrop-blur-sm p-8 rounded-2xl border border-border/50"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -885,6 +940,10 @@ export default function Home() {
                     <Input
                       type="text"
                       id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
                       className="bg-background/50 border-border/50 focus:border-accent transition-colors"
                     />
                   </motion.div>
@@ -895,6 +954,10 @@ export default function Home() {
                     <Input
                       type="email"
                       id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
                       className="bg-background/50 border-border/50 focus:border-accent transition-colors"
                     />
                   </motion.div>
@@ -906,6 +969,10 @@ export default function Home() {
                   <Input
                     type="text"
                     id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleInputChange}
+                    required
                     className="bg-background/50 border-border/50 focus:border-accent transition-colors"
                   />
                 </motion.div>
@@ -915,14 +982,38 @@ export default function Home() {
                   </label>
                   <Textarea
                     id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    required
                     rows={5}
                     className="bg-background/50 border-border/50 focus:border-accent transition-colors resize-none"
                   />
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground relative overflow-hidden group">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground relative overflow-hidden group"
+                  >
                     <motion.div className="absolute inset-0 bg-gradient-to-r from-accent to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <span className="relative z-10">Send Message</span>
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {isSubmitting ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                            className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
+                          />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Send Message
+                        </>
+                      )}
+                    </span>
                   </Button>
                 </motion.div>
               </motion.form>
