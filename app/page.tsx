@@ -153,7 +153,7 @@ export default function Home() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch("/api", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
