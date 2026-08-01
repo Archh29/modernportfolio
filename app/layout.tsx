@@ -49,6 +49,11 @@ export const metadata: Metadata = {
   keywords: ["Full Stack Developer", "Web Developer", "React", "Next.js", "Node.js", "Unity", "Game Development", "TypeScript", "PHP", "MySQL"],
   authors: [{ name: "Francis Uyguangco" }],
   creator: "Francis Uyguangco",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
