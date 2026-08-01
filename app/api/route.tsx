@@ -1,9 +1,40 @@
 import { type NextRequest, NextResponse } from "next/server"
 import nodemailer from "nodemailer"
 
+// Simple in-memory rate limiting
+const rateLimit = new Map<string, { count: number; resetTime: number }>()
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const windowMs = 15 * 60 * 1000 // 15 minutes
+  const maxRequests = 5
+
+  const record = rateLimit.get(ip)
+
+  if (!record || now > record.resetTime) {
+    rateLimit.set(ip, { count: 1, resetTime: now + windowMs })
+    return true
+  }
+
+  if (record.count >= maxRequests) {
+    return false
+  }
+
+  record.count++
+  return true
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log("[v0] Starting email send process")
+
+    const ip = request.headers.get("x-forwarded-for") || "unknown"
+
+    // Check rate limit
+    if (!checkRateLimit(ip)) {
+      console.log("[v0] Rate limit exceeded for IP:", ip)
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+    }
 
     const { name, email, subject, message } = await request.json()
 
@@ -107,6 +138,46 @@ export async function POST(request: NextRequest) {
     const info = await transporter.sendMail(mailOptions)
 
     console.log("[v0] Email sent successfully:", info.messageId)
+
+    // Send confirmation email to the user
+    const confirmationMailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: "Thank you for contacting me!",
+      html: `
+        <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: 20px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eaeaea;">
+
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 20px; color: #fff;">
+            <h1 style="margin: 0; font-size: 20px; font-weight: 600;">Message Received!</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">Thanks for reaching out, ${name}</p>
+          </div>
+
+          <!-- Message -->
+          <div style="padding: 20px; background: #ffffff;">
+            <h3 style="margin-top: 0; font-size: 16px; color: #333;">Your message has been received</h3>
+            <p style="line-height: 1.6; color: #444;">
+              Thank you for contacting me! I've received your message about "${subject}" and will get back to you as soon as possible.
+            </p>
+            <p style="line-height: 1.6; color: #444;">
+              Here's a copy of your message:
+            </p>
+            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #6a11cb;">
+              <p style="margin: 0; white-space: pre-line; line-height: 1.6; color: #555;">${message.replace(/\n/g, "<br>")}</p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="padding: 15px; background: #fafafa; text-align: center; font-size: 12px; color: #999;">
+            <p style="margin: 0;">This is an automated message. Please do not reply to this email.</p>
+          </div>
+
+        </div>
+      `,
+    }
+
+    await transporter.sendMail(confirmationMailOptions)
+    console.log("[v0] Confirmation email sent successfully")
 
     return NextResponse.json({ message: "Email sent successfully" }, { status: 200 })
   } catch (error) {
