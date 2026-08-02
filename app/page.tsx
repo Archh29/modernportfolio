@@ -444,7 +444,7 @@ export default function Home() {
                 variants={itemVariants}
                 className="text-2xl md:text-3xl font-medium text-muted-foreground mb-6"
               >
-                Full Stack Developer
+                System Developer
               </motion.h2>
 
               <motion.p variants={itemVariants} className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed">
@@ -995,7 +995,7 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
               {
                 title: "Portfolio Website",
                 description: "A responsive portfolio website with dark mode and smooth animations.",
-                image: "portfolio.png",
+                image: "pfp.png",
                 tags: ["Next.js", "Framer Motion", "Tailwind CSS"],
                 category: "Web Development",
                 gradient: "from-purple-500 to-pink-600",
@@ -1003,47 +1003,24 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
                 demoUrl: "https://modernportfolio-navy.vercel.app/",
               },
               {
-                title: "Task Management Dashboard",
-                description:
-                  "A modern task management application with drag-and-drop functionality, real-time updates, and team collaboration features.",
-                image: "/task-management-dashboard.png",
-                tags: ["React", "Node.js", "MongoDB", "Socket.io"],
+                title: "FrancisAI - Personal Chatbot",
+                description: "Developed an AI-powered portfolio assistant using Gemini API that provides interactive information about my professional background, technical skills, projects, and software development services. Implemented custom AI instructions to create a personalized conversational experience for recruiters and potential clients.",
+                image: "/ai.png",
+                tags: ["Next.js", "Gemini API", "TypeScript", "AI/ML"],
                 category: "Web Development",
-                gradient: "from-blue-500 to-cyan-600",
-                githubUrl: "https://github.com/Archh29/task-dashboard",
-                demoUrl: "https://task-dashboard-demo.vercel.app",
+                gradient: "from-violet-500 to-purple-600",
+                githubUrl: "https://github.com/Archh29/francisai",
+                demoUrl: "https://francisai-gamma.vercel.app/",
               },
               {
-                title: "E-Commerce Platform",
+                title: "Hardware Management System",
                 description:
-                  "A full-featured e-commerce platform with product management, shopping cart, payment integration, and order tracking.",
-                image: "/modern-ecommerce-interface.png",
-                tags: ["Next.js", "Stripe", "PostgreSQL", "Prisma"],
-                category: "Web Development",
-                gradient: "from-orange-500 to-red-600",
-                githubUrl: "https://github.com/Archh29/ecommerce-platform",
-                demoUrl: "https://shop-demo.vercel.app",
-              },
-              {
-                title: "Weather App",
-                description:
-                  "A beautiful weather application with location-based forecasts, interactive maps, and severe weather alerts.",
-                image: "/placeholder.jpg",
-                tags: ["React", "OpenWeather API", "Tailwind CSS"],
-                category: "Web Development",
-                gradient: "from-cyan-500 to-blue-600",
-                githubUrl: "https://github.com/Archh29/weather-app",
-                demoUrl: "https://weather-app-demo.vercel.app",
-              },
-              {
-                title: "Fitness Tracker Mobile",
-                description:
-                  "A cross-platform mobile app for tracking workouts, nutrition, and health metrics with social features.",
+                  "A comprehensive hardware management system for tracking, monitoring, and managing hardware inventory, maintenance schedules, and asset lifecycle.",
                 image: "/placeholder-user.jpg",
-                tags: ["Flutter", "Firebase", "HealthKit"],
-                category: "Mobile",
+                tags: ["Next.js", "TypeScript", "PostgreSQL", "Prisma"],
+                category: "Web Development",
                 gradient: "from-green-500 to-teal-600",
-                githubUrl: "https://github.com/Archh29/fitness-tracker",
+                githubUrl: "#",
                 demoUrl: "#",
               },
             ]
