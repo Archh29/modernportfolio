@@ -69,7 +69,14 @@ export async function POST(request: NextRequest) {
     })
 
     if (!response.ok) {
-      console.error("Gemini request failed:", response.status)
+      const errorPayload = (await response.json().catch(() => null)) as {
+        error?: { status?: string; message?: string }
+      } | null
+      console.error("Gemini request failed:", {
+        status: response.status,
+        code: errorPayload?.error?.status ?? "UNKNOWN",
+        message: errorPayload?.error?.message ?? response.statusText,
+      })
       return NextResponse.json({ error: "FrancisAI is temporarily unavailable. Please try again shortly." }, { status: 502 })
     }
 
