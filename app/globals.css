@@ -165,6 +165,23 @@
 
 /* Added custom animations and utilities */
 @layer utilities {
+  .page-container {
+    width: min(100% - 3rem, 72rem);
+    margin-inline: auto;
+  }
+
+  @media (min-width: 640px) {
+    .page-container {
+      width: min(100% - 4rem, 72rem);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-container {
+      width: min(100% - 6rem, 72rem);
+    }
+  }
+
   .text-balance {
     text-wrap: balance;
   }
