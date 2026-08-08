@@ -20,14 +20,13 @@ import {
   Zap,
   Send,
   Download,
-  Database,
-  Layout,
   Gamepad2,
   Lightbulb,
   Phone,
   MapPin,
   Facebook,
   Instagram,
+  MessageCircle,
   X as CloseIcon,
 } from "lucide-react"
 import Image from "next/image"
@@ -50,12 +49,23 @@ const contactFormSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactFormSchema>
 
+type AssistantMessage = {
+  role: "user" | "assistant"
+  content: string
+}
+
 export default function Home() {
   const [activeSection, setActiveSection] = useState("home")
   const [menuOpen, setMenuOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [cardStack, setCardStack] = useState([
+    { image: "/pfp.png", title: "Photography" },
+    { image: "/portfolio.png", title: "Travel" },
+    { image: "/gravity.png", title: "Gaming" },
+    { image: "/ai.png", title: "AI Projects" },
+  ])
   const isMobile = useMobile()
   const { toast } = useToast()
   const [selectedCategory, setSelectedCategory] = useState("All")
@@ -70,6 +80,12 @@ export default function Home() {
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({})
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
+  const [isChatOpen, setIsChatOpen] = useState(false)
+  const [chatMessages, setChatMessages] = useState<AssistantMessage[]>([
+    { role: "assistant", content: "Hi, I’m FrancisAI. Ask me about Francis, his work, or what you’ll find in this portfolio." },
+  ])
+  const [chatInput, setChatInput] = useState("")
+  const [isChatSending, setIsChatSending] = useState(false)
 
   const { scrollYProgress } = useScroll()
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 })
@@ -89,7 +105,7 @@ export default function Home() {
   // Update active section based on scroll position
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["home", "about", "skills", "services", "projects", "contact"]
+      const sections = ["home", "about", "skills", "projects", "life-outside-work", "contact"]
       const scrollPosition = window.scrollY + 100
       const scrollDepth = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100)
 
@@ -138,8 +154,8 @@ export default function Home() {
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
     { id: "skills", label: "Skills" },
-    { id: "services", label: "Services" },
     { id: "projects", label: "Projects" },
+    { id: "life-outside-work", label: "Beyond Work" },
     { id: "contact", label: "Contact" },
   ]
 
@@ -184,6 +200,44 @@ export default function Home() {
       ...prev,
       [name]: value,
     }))
+  }
+
+  const handleCardClick = () => {
+    setCardStack((prev) => {
+      if (prev.length < 2) return prev
+
+      return [...prev.slice(1), prev[0]]
+    })
+  }
+
+  const profileFrameVariants: Variants = {
+    rest: { scale: 1, x: 0 },
+    hover: {
+      scale: 1.05,
+      transition: { type: "spring", stiffness: 300, damping: 22 },
+    },
+  }
+
+  const profileHoverImageVariants: Variants = {
+    rest: { clipPath: "inset(100% 0 0 0)" },
+    hover: {
+      clipPath: "inset(0% 0 0 0)",
+      transition: { duration: 0.55, ease: "easeOut" },
+    },
+  }
+
+  const profilePixelPeelVariants: Variants = {
+    rest: { opacity: 0, y: 10, scale: 0.65 },
+    hover: ({ row, column }: { row: number; column: number }) => ({
+      opacity: [0, 1, 1, 0],
+      y: [12, 0, -8, -16],
+      scale: [0.65, 1, 1, 0.8],
+      transition: {
+        duration: 0.28,
+        delay: (11 - row) * 0.035 + (column % 3) * 0.015,
+        times: [0, 0.25, 0.65, 1],
+      },
+    }),
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -239,8 +293,44 @@ export default function Home() {
     }
   }
 
+  const sendChatMessage = async (message: string) => {
+    const trimmedMessage = message.trim()
+    if (!trimmedMessage || isChatSending) return
+
+    const history = chatMessages.slice(-8)
+    const userMessage: AssistantMessage = { role: "user", content: trimmedMessage }
+    setChatMessages((messages) => [...messages, userMessage])
+    setChatInput("")
+    setIsChatSending(true)
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmedMessage, history }),
+      })
+      const data = (await response.json()) as { response?: string; error?: string }
+
+      if (!response.ok || !data.response) {
+        throw new Error(data.error || "FrancisAI could not respond.")
+      }
+
+      setChatMessages((messages) => [...messages, { role: "assistant", content: data.response }])
+    } catch (error) {
+      setChatMessages((messages) => [
+        ...messages,
+        {
+          role: "assistant",
+          content: error instanceof Error ? error.message : "FrancisAI is temporarily unavailable. Please try again shortly.",
+        },
+      ])
+    } finally {
+      setIsChatSending(false)
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
+    <main className="min-h-screen bg-background text-foreground relative overflow-x-hidden flex flex-col">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-accent text-accent-foreground px-4 py-2 rounded-lg z-50"
@@ -444,7 +534,7 @@ export default function Home() {
                 variants={itemVariants}
                 className="text-2xl md:text-3xl font-medium text-muted-foreground mb-6"
               >
-                System Developer
+                Full-Stack Web Developer
               </motion.h2>
 
               <motion.p variants={itemVariants} className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed">
@@ -455,24 +545,24 @@ export default function Home() {
               <motion.div variants={itemVariants} className="flex flex-wrap gap-4">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
-                    onClick={() => scrollToSection("contact")}
+                    onClick={() => scrollToSection("projects")}
                     className="bg-accent hover:bg-accent/90 text-accent-foreground relative overflow-hidden group"
                   >
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-accent to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"
                       initial={false}
                     />
-                    <span className="relative z-10">Get in Touch</span>
+                    <span className="relative z-10">View My Work</span>
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button variant="outline" onClick={() => scrollToSection("projects")}>
-                    View My Work
+                  <Button variant="ghost" onClick={() => scrollToSection("contact")}>
+                    Get in Touch
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => {
                       track("resume_download", { location: "hero" })
                       const link = document.createElement("a")
@@ -502,12 +592,34 @@ export default function Home() {
                   transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
                 />
                 <motion.div
-                  className="relative w-full h-full rounded-full overflow-hidden border-4 border-accent/30 shadow-2xl"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="relative w-full h-full rounded-full overflow-hidden border-4 border-accent/30 shadow-2xl cursor-pointer"
+                  variants={profileFrameVariants}
+                  initial="rest"
+                  whileHover="hover"
                 >
-                  <Image src="/profile1.jpeg" alt="Francis Uyguangco" fill className="object-cover" priority />
-                  <motion.div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
+                  <Image src="/yuta.jpg" alt="Francis Uyguangco" fill className="object-cover" priority />
+                  <motion.div className="absolute inset-0 pointer-events-none" variants={profileHoverImageVariants}>
+                    <Image src="/profile1.jpeg" alt="" fill className="object-cover" aria-hidden="true" />
+                  </motion.div>
+                  {Array.from({ length: 144 }, (_, index) => {
+                    const row = Math.floor(index / 12)
+                    const column = index % 12
+
+                    return (
+                      <motion.span
+                        key={`${row}-${column}`}
+                        className="absolute block bg-white pointer-events-none"
+                        style={{
+                          top: `${row * (100 / 12)}%`,
+                          left: `${column * (100 / 12)}%`,
+                          width: `${100 / 12 + 0.5}%`,
+                          height: `${100 / 12 + 0.5}%`,
+                        }}
+                        custom={{ row, column }}
+                        variants={profilePixelPeelVariants}
+                      />
+                    )
+                  })}
                 </motion.div>
                 <motion.div
                   className="absolute -top-4 -right-4 w-12 h-12 bg-accent/10 backdrop-blur-sm border border-accent/20 rounded-full flex items-center justify-center"
@@ -663,9 +775,9 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
                     content: "Bachelor's in Information Technology, Phinma Cagayan de Oro College",
                   },
                   {
-                    title: "Experience",
+                    title: "Focus",
                     content:
-                      "Gained extensive experience developing web applications through academic projects, personal projects, and continuous learning.",
+                      "Full-stack web and mobile systems, API integration, and practical problem solving.",
                   },
                   {
                     title: "Location",
@@ -693,6 +805,61 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
               </div>
             </motion.div>
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="mt-16 border-t border-border/50 pt-12"
+          >
+            <div className="mb-8 max-w-2xl">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-accent">Professional journey</p>
+              <h3 className="text-2xl font-bold">Experience</h3>
+            </div>
+
+            <div className="relative ml-2 border-l border-accent/30 pl-7 md:ml-4 md:pl-10">
+              {[
+                {
+                  role: "AI Data Annotator",
+                  company: "Outlier AI",
+                  period: "January 2026 – Present",
+                  description: "Evaluate and annotate AI outputs for accuracy and clarity.",
+                },
+                {
+                  role: "IT Support Intern",
+                  company: "Speakify Team",
+                  period: "November 2025 – April 2026",
+                  description: "Provided technical support and troubleshooting for hardware and software issues.",
+                },
+                {
+                  role: "Freelance Full-Stack Developer",
+                  company: "Cnergy Gym",
+                  period: "October 2024 – November 2025",
+                  description: "Developed web and mobile systems for membership and attendance management.",
+                },
+              ].map((experience, index) => (
+                <motion.article
+                  key={`${experience.role}-${experience.company}`}
+                  initial={{ opacity: 0, x: -16 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.12 }}
+                  viewport={{ once: true }}
+                  className="relative pb-8 last:pb-0"
+                >
+                  <span className="absolute -left-[35px] top-1.5 h-3 w-3 rounded-full border-2 border-background bg-accent md:-left-[47px]" aria-hidden="true" />
+                  <div className="rounded-xl border border-border/50 bg-background/60 p-5 backdrop-blur-sm transition-colors hover:border-accent/30">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                      <h4 className="font-bold">{experience.role}</h4>
+                      <p className="shrink-0 text-sm text-accent">{experience.period}</p>
+                    </div>
+                    <p className="mt-1 text-sm font-medium text-foreground/80">{experience.company}</p>
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{experience.description}</p>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -723,196 +890,58 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
             />
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[
-              {
-                name: "JavaScript",
-                level: 90,
-                color: "from-yellow-400 to-orange-500",
-              },
-              {
-                name: "React",
-                level: 85,
-                color: "from-blue-400 to-cyan-500",
-              },
-              {
-                name: "Node.js",
-                level: 80,
-                color: "from-green-400 to-emerald-500",
-              },
-              {
-                name: "TypeScript",
-                level: 75,
-                color: "from-blue-500 to-indigo-600",
-              },
-              {
-                name: "Next.js",
-                level: 85,
-                color: "from-gray-700 to-gray-900",
-              },
-              {
-                name: "CSS/Tailwind",
-                level: 90,
-                color: "from-teal-400 to-blue-500",
-              },
-              {
-                name: "UI/UX Design",
-                level: 70,
-                color: "from-pink-400 to-rose-500",
-              },
-              {
-                name: "C#",
-                level: 65,
-                color: "from-purple-400 to-pink-500",
-              },
-              {
-                name: "PHP",
-                level: 75,
-                color: "from-indigo-400 to-purple-600",
-              },
-              {
-                name: "MySQL",
-                level: 80,
-                color: "from-blue-400 to-blue-600",
-              },
-              {
-                name: "Unity",
-                level: 70,
-                color: "from-gray-600 to-gray-800",
-              },
-              {
-                name: "REST API",
-                level: 85,
-                color: "from-green-400 to-teal-500",
-              },
-              {
-                name: "Git",
-                level: 80,
-                color: "from-orange-400 to-red-500",
-              },
-            ].map((skill, index) => (
-              <motion.div
-                key={skill.name}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{
-                  duration: 0.5,
-                  delay: index * 0.1,
-                  type: "spring",
-                  bounce: 0.4,
-                }}
-                viewport={{ once: true }}
-                className="bg-card/80 backdrop-blur-sm p-6 rounded-xl border border-border/50 hover:border-accent/30 transition-all duration-300 group"
-                whileHover={{ scale: 1.05, y: -5 }}
-              >
-                <h3 className="font-bold mb-3 group-hover:text-accent transition-colors">{skill.name}</h3>
-                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${skill.level}%` }}
-                    transition={{ duration: 1.5, delay: 0.5, ease: "easeOut" }}
-                    viewport={{ once: true }}
-                    className={`bg-gradient-to-r ${skill.color} h-3 rounded-full relative overflow-hidden`}
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                      animate={{ x: [-100, 200] }}
-                      transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                    />
-                  </motion.div>
-                </div>
-                <p className="text-right text-sm mt-2 text-muted-foreground font-medium">{skill.level}%</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section id="services" className="py-20 bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true, margin: "-100px" }}
-            className="text-center mb-12"
-          >
-            <motion.h2
-              className="text-3xl md:text-4xl font-bold mb-4"
-              whileInView={{ scale: [0.9, 1] }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              My Services
-            </motion.h2>
-            <motion.div
-              className="w-20 h-1 bg-gradient-to-r from-accent to-purple-500 mx-auto rounded-full"
-              initial={{ width: 0 }}
-              whileInView={{ width: 80 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-            />
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Code,
-                title: "Full Stack Web Development",
-                description: "Build responsive web applications using React, Next.js, PHP, MySQL, TypeScript, and Tailwind CSS.",
-              },
-              {
-                icon: Palette,
-                title: "Mobile App Development",
-                description: "Develop cross-platform mobile applications with Flutter and integrate them with backend services.",
-              },
-              {
-                icon: Zap,
-                title: "REST API Development",
-                description: "Create and integrate REST APIs for secure communication between applications and databases.",
-              },
-              {
-                icon: Database,
-                title: "Database Design",
-                description: "Design and manage MySQL databases with efficient schemas and optimized queries.",
-              },
-              {
-                icon: Layout,
-                title: "Responsiveness UI Development",
-                description: "Build clean, responsive, and user-friendly interfaces that work across all devices.",
-              },
-              {
-                icon: Gamepad2,
-                title: "Game Development (Unity)",
-                description: "Develop interactive 2D games and gameplay systems using Unity and C#.",
-              },
-             
-            ].map((service, index) => (
-              <motion.div
-                key={service.title}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{
-                  duration: 0.5,
-                  delay: index * 0.1,
-                  type: "spring",
-                  bounce: 0.4,
-                }}
-                viewport={{ once: true }}
-                className="bg-background/80 backdrop-blur-sm p-6 rounded-xl border border-border/50 hover:border-accent/30 transition-all duration-300 group"
-                whileHover={{ scale: 1.02, y: -5 }}
-              >
+          <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                { title: "Languages", skills: ["JavaScript", "TypeScript", "PHP", "C#"] },
+                { title: "Frontend", skills: ["React", "Next.js", "CSS", "Tailwind CSS", "UI/UX Design"] },
+                { title: "Backend", skills: ["Node.js", "MySQL", "REST APIs"] },
+                { title: "Mobile & Game Dev", skills: ["Unity", "C#"] },
+                { title: "Tools", skills: ["Git"] },
+              ].map((group, index) => (
                 <motion.div
-                  className="bg-accent/10 p-4 rounded-xl border border-accent/20 w-fit mb-4 group-hover:bg-accent/20 transition-colors"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  key={group.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.08 }}
+                  viewport={{ once: true }}
+                  className="rounded-2xl border border-border/50 bg-card/80 p-5 backdrop-blur-sm"
                 >
-                  <service.icon className="h-6 w-6 text-accent" />
+                  <h3 className="mb-4 font-semibold text-foreground">{group.title}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {group.skills.map((skill) => (
+                      <span key={skill} className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1.5 text-sm text-accent">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
                 </motion.div>
-                <h3 className="font-bold mb-2 group-hover:text-accent transition-colors">{service.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{service.description}</p>
-              </motion.div>
-            ))}
+              ))}
+            </div>
+
+            <motion.aside
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/10 to-purple-500/10 p-6"
+            >
+              <p className="mb-5 text-sm font-semibold uppercase tracking-[0.18em] text-accent">Selected practice</p>
+              <div className="space-y-5">
+                <div>
+                  <h3 className="font-semibold">React / Next.js</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Used to build and ship this portfolio and the FrancisAI personal chatbot.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Unity / C#</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Used to build Gravity Shift, a 2D platformer centered on gravity-changing gameplay.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold">TypeScript / Flutter</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Used in Cnergy Gym&apos;s web and mobile interfaces for staff, coaches, and members.</p>
+                </div>
+              </div>
+            </motion.aside>
           </div>
         </div>
       </section>
@@ -973,7 +1002,7 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
               {
                 title: "Gravity Shift",
                 description:
-                  "A Unity 2D platformer game featuring gravity manipulation mechanics and challenging level design.",
+                  "Gravity Shift turns a standard platforming challenge into a gravity-manipulation puzzle. I built the core movement and level interactions in Unity around a dedicated gravity-shift mechanic, resulting in a playable 2D game published as an itch.io demo.",
                 image: "/gravity.png",
                 tags: ["Unity", "C#", "2D Game Development"],
                 category: "Game Development",
@@ -984,7 +1013,7 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
               {
                 title: "Cnergy Gym Management System",
                 description:
-                  "A comprehensive monitoring and progress tracking system with sales features for cnergy gym management. Built with Next.js for admin/staff interfaces and Flutter for coach/user mobile apps.",
+                  "Cnergy gives gym staff, coaches, and members one place to monitor progress and handle sales-related work instead of relying on disconnected workflows. I separated the admin web experience from the coach and member mobile experience so each role has an interface suited to its daily tasks; the result is a live, multi-role management system.",
                 image: "ss.png",
                 tags: ["Next.js", "Flutter", "TypeScript", "Mobile Development"],
                 category: "Mobile",
@@ -994,7 +1023,7 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
               },
               {
                 title: "Portfolio Website",
-                description: "A responsive portfolio website with dark mode and smooth animations.",
+                description: "This site gives recruiters and potential clients a focused way to review my work, services, and contact details. I chose a responsive Next.js structure with progressive motion to keep the experience polished without making navigation harder; the result is a deployed portfolio that works across screen sizes.",
                 image: "pfp.png",
                 tags: ["Next.js", "Framer Motion", "Tailwind CSS"],
                 category: "Web Development",
@@ -1004,7 +1033,7 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
               },
               {
                 title: "FrancisAI - Personal Chatbot",
-                description: "Developed an AI-powered portfolio assistant using Gemini API that provides interactive information about my professional background, technical skills, projects, and software development services. Implemented custom AI instructions to create a personalized conversational experience for recruiters and potential clients.",
+                description: "FrancisAI helps visitors get answers about my background, skills, projects, and services without having to search through every page. I used tailored Gemini instructions to keep replies grounded in portfolio context, creating a live conversational entry point for recruiters and potential clients.",
                 image: "/ai.png",
                 tags: ["Next.js", "Gemini API", "TypeScript", "AI/ML"],
                 category: "Web Development",
@@ -1015,7 +1044,7 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
               {
                 title: "Hardware Management System",
                 description:
-                  "A comprehensive hardware management system for tracking, monitoring, and managing hardware inventory, maintenance schedules, and asset lifecycle.",
+                  "This system centralizes hardware inventory, maintenance schedules, and asset lifecycle records so equipment can be tracked in one workflow. I modeled those connected records in a single management application to make monitoring and maintenance status easier to follow; the result replaces scattered asset information with a dedicated system of record.",
                 image: "/placeholder-user.jpg",
                 tags: ["Next.js", "TypeScript", "PostgreSQL", "Prisma"],
                 category: "Web Development",
@@ -1122,7 +1151,7 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-background relative">
+      <section id="contact" className="order-10 py-20 bg-background relative">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1384,8 +1413,104 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
         </div>
       </section>
 
+      {/* Life Outside Work Section */}
+      <section id="life-outside-work" className="py-20 bg-card/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4">
+          <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+            <motion.div
+              initial={{ opacity: 0, x: -24 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-100px" }}
+              className="max-w-xl"
+            >
+              <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-accent">Beyond the screen</p>
+              <h2 className="text-3xl font-bold md:text-4xl">BeyondWork</h2>
+              <motion.div
+                className="my-5 h-1 w-20 rounded-full bg-gradient-to-r from-accent to-purple-500"
+                initial={{ width: 0 }}
+                whileInView={{ width: 80 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+              />
+              <p className="max-w-lg text-lg leading-relaxed text-muted-foreground">
+                Outside programming, I enjoy recharging through games, fitness, time with cats, and exploring the
+                technology that inspires my next project. These interests keep me curious, creative, and grounded.
+              </p>
+
+              <div className="mt-8 grid grid-cols-2 gap-3">
+                {[
+                  { icon: Gamepad2, label: "Gaming" },
+                  { icon: Zap, label: "Fitness" },
+                  { icon: Sparkles, label: "Cats" },
+                  { icon: Lightbulb, label: "Exploring Technology" },
+                ].map((interest, index) => (
+                  <motion.div
+                    key={interest.label}
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: 0.12 + index * 0.08 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -3 }}
+                    className="flex items-center gap-3 rounded-xl border border-border/50 bg-background/60 px-4 py-3 backdrop-blur-sm"
+                  >
+                    <interest.icon className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                    <span className="text-sm font-medium">{interest.label}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            <div className="flex justify-center lg:justify-end">
+              <div className="relative w-80 h-96" style={{ perspective: 1000 }}>
+                <motion.div
+                  className="relative w-full h-full preserve-3d"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                >
+                  {cardStack.map((item, index) => (
+                    <motion.button
+                      key={item.image}
+                      type="button"
+                      aria-label={index === 0 ? `Show next card after ${item.title}` : undefined}
+                      className="absolute w-full h-full rounded-2xl overflow-hidden shadow-2xl text-left"
+                      initial={false}
+                      animate={{
+                        scale: 1 - index * 0.05,
+                        opacity: 1 - index * 0.15,
+                        rotate: index * 2,
+                        y: index * 12,
+                      }}
+                      transition={{ type: "spring", stiffness: 260, damping: 26 }}
+                      style={{
+                        zIndex: cardStack.length - index,
+                        transformOrigin: "center bottom",
+                        pointerEvents: index === 0 ? "auto" : "none",
+                      }}
+                      whileHover={{
+                        scale: 1.03,
+                        y: -8,
+                      }}
+                      onClick={handleCardClick}
+                    >
+                      <Image src={item.image} alt={item.title} fill className="object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <h3 className="text-white font-bold text-lg">{item.title}</h3>
+                        {index === 0 && <span className="text-white/80 text-sm">Click to see next</span>}
+                      </div>
+                    </motion.button>
+                  ))}
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="py-12 bg-card/80 backdrop-blur-sm border-t border-border/50">
+      <footer className="order-20 py-12 bg-card/80 backdrop-blur-sm border-t border-border/50">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <motion.div
@@ -1421,11 +1546,6 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
                 <li>
                   <Link href="#skills" className="text-muted-foreground hover:text-accent transition-colors">
                     Skills
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#services" className="text-muted-foreground hover:text-accent transition-colors">
-                    Services
                   </Link>
                 </li>
                 <li>
@@ -1538,6 +1658,123 @@ I enjoy tackling challenging problems, learning new technologies, and continuous
           </div>
         </div>
       </footer>
+
+      {/* FrancisAI Portfolio Assistant */}
+      <AnimatePresence>
+        {isChatOpen && (
+          <motion.aside
+            id="francis-ai-assistant"
+            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="fixed bottom-24 right-4 z-40 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border/60 bg-card/95 shadow-2xl backdrop-blur-xl sm:right-6"
+            aria-label="FrancisAI portfolio assistant"
+          >
+            <div className="flex items-center justify-between border-b border-border/50 bg-accent/10 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">FrancisAI</p>
+                  <p className="text-xs text-muted-foreground">Portfolio assistant</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsChatOpen(false)}
+                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                aria-label="Close FrancisAI"
+              >
+                <CloseIcon className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex h-[26rem] flex-col p-4">
+              <div className="flex-1 space-y-3 overflow-y-auto pr-1" aria-live="polite">
+                {chatMessages.map((message, index) => (
+                  <div
+                    key={`${message.role}-${index}`}
+                    className={`max-w-[88%] rounded-xl px-3 py-2.5 text-sm leading-relaxed ${
+                      message.role === "user"
+                        ? "ml-auto rounded-br-sm bg-accent text-accent-foreground"
+                        : "rounded-tl-sm bg-muted text-foreground"
+                    }`}
+                  >
+                    {message.content}
+                  </div>
+                ))}
+                {isChatSending && (
+                  <div className="w-fit rounded-xl rounded-tl-sm bg-muted px-3 py-2.5 text-sm text-muted-foreground">
+                    FrancisAI is thinking…
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  {
+                    label: "About Francis",
+                    message: "Who is Francis?",
+                  },
+                  {
+                    label: "Skills",
+                    message: "What skills does Francis have?",
+                  },
+                  {
+                    label: "Cnergy Gym",
+                    message: "Tell me about the Cnergy Gym Management System.",
+                  },
+                  {
+                    label: "Work with Francis",
+                    message: "What can Francis build for my business?",
+                  },
+                ].map((topic) => (
+                  <button
+                    key={topic.label}
+                    type="button"
+                    onClick={() => sendChatMessage(topic.message)}
+                    disabled={isChatSending}
+                    className="rounded-full border border-accent/20 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {topic.label}
+                  </button>
+                ))}
+              </div>
+              <form
+                className="mt-3 flex gap-2 border-t border-border/50 pt-3"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void sendChatMessage(chatInput)
+                }}
+              >
+                <Input
+                  value={chatInput}
+                  onChange={(event) => setChatInput(event.target.value)}
+                  placeholder="Ask about Francis…"
+                  maxLength={2000}
+                  disabled={isChatSending}
+                  aria-label="Message FrancisAI"
+                />
+                <Button type="submit" size="icon" disabled={!chatInput.trim() || isChatSending} aria-label="Send message">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+      <motion.button
+        type="button"
+        onClick={() => setIsChatOpen((open) => !open)}
+        className="fixed bottom-5 right-4 z-40 flex items-center gap-3 rounded-full border border-accent/30 bg-accent px-4 py-3 text-accent-foreground shadow-lg shadow-accent/20 sm:bottom-6 sm:right-6"
+        whileHover={{ scale: 1.04, y: -2 }}
+        whileTap={{ scale: 0.96 }}
+        aria-expanded={isChatOpen}
+        aria-controls="francis-ai-assistant"
+      >
+        <MessageCircle className="h-5 w-5" aria-hidden="true" />
+        <span className="text-sm font-semibold">Ask FrancisAI</span>
+      </motion.button>
 
       {/* Privacy Policy Modal */}
       <AnimatePresence>

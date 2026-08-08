@@ -115,7 +115,7 @@ export default function RootLayout({
             {children}
           </ThemeProvider>
         </Suspense>
-        <Analytics />
+        {process.env.VERCEL === "1" && <Analytics />}
         <Toaster />
       </body>
     </html>
