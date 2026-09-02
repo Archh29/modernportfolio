@@ -233,36 +233,6 @@ export default function Home() {
     })
   }
 
-  const profileFrameVariants: Variants = {
-    rest: { scale: 1, x: 0 },
-    hover: {
-      scale: 1.05,
-      transition: { type: "spring", stiffness: 300, damping: 22 },
-    },
-  }
-
-  const profileHoverImageVariants: Variants = {
-    rest: { clipPath: "inset(100% 0 0 0)" },
-    hover: {
-      clipPath: "inset(0% 0 0 0)",
-      transition: { duration: 0.55, ease: "easeOut" },
-    },
-  }
-
-  const profilePixelPeelVariants: Variants = {
-    rest: { opacity: 0, y: 10, scale: 0.65 },
-    hover: ({ row, column }: { row: number; column: number }) => ({
-      opacity: [0, 1, 1, 0],
-      y: [12, 0, -8, -16],
-      scale: [0.65, 1, 1, 0.8],
-      transition: {
-        duration: 0.28,
-        delay: (11 - row) * 0.035 + (column % 3) * 0.015,
-        times: [0, 0.25, 0.65, 1],
-      },
-    }),
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -361,7 +331,7 @@ export default function Home() {
         Skip to main content
       </a>
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-purple-500 to-accent z-50 origin-left"
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-gray-500 to-accent z-50 origin-left"
         style={{ scaleX }}
         aria-hidden="true"
       />
@@ -395,7 +365,7 @@ export default function Home() {
           }}
         />
         <motion.div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-gray-800/5 rounded-full blur-3xl"
           animate={{
             scale: [1.2, 1, 1.2],
             opacity: [0.2, 0.4, 0.2],
@@ -546,7 +516,7 @@ export default function Home() {
                   transition={{ delay: 0.5 }}
                 >
                   <Sparkles className="w-4 h-4 text-accent" />
-                  Available for new opportunities
+                  Open to work
                 </motion.div>
               </motion.div>
 
@@ -554,13 +524,13 @@ export default function Home() {
                 variants={itemVariants}
                 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-balance"
               >
-                Hi, I'm{" "}
+                Hey, I'm{" "}
                 <motion.span
-                  className="relative inline-block text-foreground transition-[color,text-shadow] duration-300 hover:text-accent dark:hover:text-purple-300 dark:hover:[text-shadow:0_0_22px_rgba(168,85,247,0.6)]"
+                  className="relative inline-block text-foreground transition-[color,text-shadow] duration-300 hover:text-accent dark:hover:text-gray-300 dark:hover:[text-shadow:0_0_22px_rgba(100,100,100,0.6)]"
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
-                  Francis Uyguangco
+                  Francis
                   <motion.div
                     className="absolute inset-0 bg-accent/10 blur-xl rounded-lg opacity-0"
                     whileHover={{ opacity: 1 }}
@@ -573,12 +543,11 @@ export default function Home() {
                 variants={itemVariants}
                 className="text-2xl md:text-3xl font-medium text-muted-foreground mb-6"
               >
-                Full-Stack Web Developer
+                Full-Stack Developer
               </motion.h2>
 
               <motion.p variants={itemVariants} className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed">
-                I build exceptional web experiences that are fast, accessible, and visually appealing, and also create
-                engaging games with Unity.
+                I build web applications that actually work and games that are fun to play. Mostly focused on React, Next.js, and Laravel, but I'm always picking up new tools along the way.
               </motion.p>
 
               <motion.div variants={itemVariants} className="flex flex-wrap gap-4">
@@ -588,10 +557,10 @@ export default function Home() {
                     className="bg-accent hover:bg-accent/90 text-accent-foreground relative overflow-hidden group"
                   >
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-accent to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute inset-0 bg-gradient-to-r from-gray-600 to-gray-800 opacity-0 group-hover:opacity-100 transition-opacity"
                       initial={false}
                     />
-                    <span className="relative z-10">View My Work</span>
+                    <span className="relative z-10">See Projects</span>
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -619,67 +588,18 @@ export default function Home() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
               className="flex-1 flex justify-center"
             >
               <motion.div className="relative w-64 h-64 md:w-80 md:h-80" variants={floatingVariants} animate="animate">
                 <motion.div
-                  className="absolute inset-0 rounded-full bg-gradient-to-br from-accent/20 to-purple-500/20 blur-2xl"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                />
-                <motion.div
-                  className="relative w-full h-full rounded-full overflow-hidden border-4 border-accent/30 shadow-2xl cursor-pointer"
-                  variants={profileFrameVariants}
-                  initial="rest"
-                  whileHover="hover"
+                  className="relative w-full h-full rounded-full overflow-hidden border-4 border-accent/30 shadow-2xl"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
                   <Image src="/yuta.jpg" alt="Francis Uyguangco" fill className="object-cover" priority />
-                  <motion.div className="absolute inset-0 pointer-events-none" variants={profileHoverImageVariants}>
-                    <Image src="/profile1.jpeg" alt="" fill className="object-cover" aria-hidden="true" />
-                  </motion.div>
-                  {Array.from({ length: 144 }, (_, index) => {
-                    const row = Math.floor(index / 12)
-                    const column = index % 12
-
-                    return (
-                      <motion.span
-                        key={`${row}-${column}`}
-                        className="absolute block bg-white pointer-events-none"
-                        style={{
-                          top: `${row * (100 / 12)}%`,
-                          left: `${column * (100 / 12)}%`,
-                          width: `${100 / 12 + 0.5}%`,
-                          height: `${100 / 12 + 0.5}%`,
-                        }}
-                        custom={{ row, column }}
-                        variants={profilePixelPeelVariants}
-                      />
-                    )
-                  })}
-                </motion.div>
-                <motion.div
-                  className="absolute -top-4 -right-4 w-12 h-12 bg-accent/10 backdrop-blur-sm border border-accent/20 rounded-full flex items-center justify-center"
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                >
-                  <Code className="w-6 h-6 text-accent" />
-                </motion.div>
-                <motion.div
-                  className="absolute -bottom-4 -left-4 w-12 h-12 bg-purple-500/10 backdrop-blur-sm border border-purple-500/20 rounded-full flex items-center justify-center"
-                  animate={{ rotate: [360, 0] }}
-                  transition={{ duration: 6, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                >
-                  <Palette className="w-6 h-6 text-purple-500" />
-                </motion.div>
-                <motion.div
-                  className="absolute top-1/2 -right-8 w-10 h-10 bg-orange-500/10 backdrop-blur-sm border border-orange-500/20 rounded-full flex items-center justify-center"
-                  animate={{ y: [-10, 10, -10] }}
-                  transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-                >
-                  <Zap className="w-5 h-5 text-orange-500" />
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -723,7 +643,7 @@ export default function Home() {
               About Me
             </motion.h2>
             <motion.div
-              className="w-20 h-1 bg-gradient-to-r from-accent to-purple-500 mx-auto rounded-full"
+              className="w-20 h-1 bg-gradient-to-r from-gray-700 to-gray-900 mx-auto rounded-full"
               initial={{ width: 0 }}
               whileInView={{ width: 80 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -747,11 +667,11 @@ export default function Home() {
                 transition={{ delay: 0.2 }}
                 viewport={{ once: true }}
               >
-              I am a Bachelor of Science in Information Technology graduate specializing in System Development, focused on building practical and user-focused software solutions. I have hands-on experience in full-stack web development using JavaScript, React, Next.js, PHP, and MySQL, as well as mobile development with Flutter and game development with Unity.
+            My journey into technology started with a curiosity about how websites and applications work. What began as experimenting with small projects grew into a passion for building software and solving real-world problems through code.
 
-My journey started with small personal projects and grew into developing full-stack applications and real-world systems. Through academic projects, personal work, and continuous self-learning, I have developed skills in software development, database design, API integration, and responsive UI development.
+As a BS Information Technology graduate, I developed my skills through hands-on projects, gaining experience in full-stack development, databases, and API integration. Each challenge strengthened my problem-solving abilities and deepened my interest in creating practical, user-focused solutions.
 
-I enjoy solving technical problems, learning new technologies, and building clean, maintainable applications. Outside of coding, I enjoy strategy games, experimenting with new technology, and exploring efficient ways to solve problems.
+Today, I continue to grow as a Full-Stack Developer, driven by curiosity, continuous learning, and a passion for building meaningful applications.
               </motion.p>
               <motion.p
                 className="text-muted-foreground mb-4 leading-relaxed"
@@ -760,9 +680,7 @@ I enjoy solving technical problems, learning new technologies, and building clea
                 transition={{ delay: 0.4 }}
                 viewport={{ once: true }}
               >
-                My journey started with small projects, and over the years, I’ve gained practical experience building
-                web applications and games. I enjoy solving problems, learning new frameworks, and improving my skills
-                through hands-on projects.
+                Most of what I know comes from actually building stuff rather than just reading about it. Whether it's a gym management system for a local business or a 2D platformer game, I learn best by diving into problems and figuring them out as I go.
               </motion.p>
               <motion.p
                 className="text-muted-foreground leading-relaxed"
@@ -771,33 +689,8 @@ I enjoy solving technical problems, learning new technologies, and building clea
                 transition={{ delay: 0.6 }}
                 viewport={{ once: true }}
               >
-                When I’m not coding, you can find me playing strategy games like chess and Dota 2, experimenting with
-                new tech, or analyzing problems to find efficient solutions.
+                When I'm not stuck debugging code, I'm probably playing Dota 2, chess, or testing out some new framework that caught my attention. I believe the best developers are the ones who never stop being curious.
               </motion.p>
-              <motion.div
-                className="mt-6"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                viewport={{ once: true }}
-              >
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      track("resume_download", { location: "about" })
-                      const link = document.createElement("a")
-                      link.href = "/resume.pdf"
-                      link.download = "Francis_Uyguangco_Resume.pdf"
-                      link.click()
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Resume
-                  </Button>
-                </motion.div>
-              </motion.div>
             </motion.div>
 
             <motion.div
@@ -918,10 +811,10 @@ I enjoy solving technical problems, learning new technologies, and building clea
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              My Skills
+              Skills & Tools
             </motion.h2>
             <motion.div
-              className="w-20 h-1 bg-gradient-to-r from-accent to-purple-500 mx-auto rounded-full"
+              className="w-20 h-1 bg-gradient-to-r from-gray-700 to-gray-900 mx-auto rounded-full"
               initial={{ width: 0 }}
               whileInView={{ width: 80 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -934,7 +827,7 @@ I enjoy solving technical problems, learning new technologies, and building clea
               {[
                 { title: "Languages", skills: ["JavaScript", "TypeScript", "PHP", "C#"] },
                 { title: "Frontend", skills: ["React", "Next.js", "CSS", "Tailwind CSS", "UI/UX Design"] },
-                { title: "Backend", skills: ["Node.js", "MySQL", "REST APIs"] },
+                { title: "Backend", skills: ["Node.js", "Laravel", "MySQL", "REST APIs"] },
                 { title: "Mobile & Game Dev", skills: ["Unity", "C#"] },
                 { title: "Tools", skills: ["Git"] },
               ].map((group, index) => (
@@ -963,21 +856,21 @@ I enjoy solving technical problems, learning new technologies, and building clea
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
-              className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/10 to-purple-500/10 p-6"
+              className="rounded-2xl border border-gray-400/20 bg-gradient-to-br from-gray-100/10 to-gray-300/10 p-6"
             >
-              <p className="mb-5 text-sm font-semibold uppercase tracking-[0.18em] text-accent">Selected practice</p>
+              <p className="mb-5 text-sm font-semibold uppercase tracking-[0.18em] text-accent">What I've been working with</p>
               <div className="space-y-5">
                 <div>
                   <h3 className="font-semibold">React / Next.js</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Used to build and ship this portfolio and the FrancisAI personal chatbot.</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Built this portfolio and FrancisAI chatbot with these. Go-to stack for most of my web projects.</p>
                 </div>
                 <div>
                   <h3 className="font-semibold">Unity / C#</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Used to build Gravity Shift, a 2D platformer centered on gravity-changing gameplay.</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Used for Gravity Shift - my 2D platformer where you can flip gravity mid-air.</p>
                 </div>
                 <div>
                   <h3 className="font-semibold">TypeScript / Flutter</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Used in Cnergy Gym&apos;s web and mobile interfaces for staff, coaches, and members.</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Powered Cnergy Gym's system - web dashboard for staff, mobile apps for everyone else.</p>
                 </div>
               </div>
             </motion.aside>
@@ -1001,10 +894,10 @@ I enjoy solving technical problems, learning new technologies, and building clea
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              My Projects
+              Projects I've Built
             </motion.h2>
             <motion.div
-              className="w-20 h-1 bg-gradient-to-r from-accent to-purple-500 mx-auto rounded-full"
+              className="w-20 h-1 bg-gradient-to-r from-gray-700 to-gray-900 mx-auto rounded-full"
               initial={{ width: 0 }}
               whileInView={{ width: 80 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -1041,53 +934,53 @@ I enjoy solving technical problems, learning new technologies, and building clea
               {
                 title: "Gravity Shift",
                 description:
-                  "Gravity Shift turns a standard platforming challenge into a gravity-manipulation puzzle. I built the core movement and level interactions in Unity around a dedicated gravity-shift mechanic, resulting in a playable 2D game published as an itch.io demo.",
+                  "A 2D platformer where you can flip gravity to solve puzzles. Built in Unity with C# - the core mechanic lets players shift gravity mid-air to navigate levels differently. Published as a demo on itch.io.",
                 image: "/gravity.png",
                 tags: ["Unity", "C#", "2D Game Development"],
                 category: "Game Development",
-                gradient: "from-purple-500 to-indigo-600",
+                gradient: "from-gray-700 to-gray-900",
                 githubUrl: "https://github.com/Archh29/gravity-shift#",
                 demoUrl: "https://francis385.itch.io/gravity-shift",
               },
               {
                 title: "Cnergy Gym Management System",
                 description:
-                  "Cnergy gives gym staff, coaches, and members one place to monitor progress and handle sales-related work instead of relying on disconnected workflows. I separated the admin web experience from the coach and member mobile experience so each role has an interface suited to its daily tasks; the result is a live, multi-role management system.",
+                  "Helped a local gym go from spreadsheets to a proper system. Staff use the web dashboard, coaches and members get mobile apps. Everyone sees what they need based on their role - no more混乱 with shared spreadsheets.",
                 image: "ss.png",
                 tags: ["Next.js", "Flutter", "TypeScript", "Mobile Development"],
                 category: "Mobile",
-                gradient: "from-green-500 to-emerald-600",
+                gradient: "from-gray-600 to-gray-800",
                 githubUrl: "https://github.com/Archh29/Cnergy-Gym",
                 demoUrl: "https://cnergy.site",
               },
               {
                 title: "Portfolio Website",
-                description: "This site gives recruiters and potential clients a focused way to review my work, services, and contact details. I chose a responsive Next.js structure with progressive motion to keep the experience polished without making navigation harder; the result is a deployed portfolio that works across screen sizes.",
+                description: "The site you're looking at right now. Built with Next.js and Framer Motion to showcase my work in a clean, responsive way. Nothing fancy - just trying to make it easy for people to see what I can do.",
                 image: "port.png",
                 tags: ["Next.js", "Framer Motion", "Tailwind CSS"],
                 category: "Web Development",
-                gradient: "from-purple-500 to-pink-600",
+                gradient: "from-gray-600 to-gray-800",
                 githubUrl: "https://github.com/Archh29/modernportfolio",
                 demoUrl: "https://modernportfolio-navy.vercel.app/",
               },
               {
                 title: "FrancisAI - Personal Chatbot",
-                description: "FrancisAI helps visitors get answers about my background, skills, projects, and services without having to search through every page. I used tailored Gemini instructions to keep replies grounded in portfolio context, creating a live conversational entry point for recruiters and potential clients.",
+                description: "Built a chatbot that answers questions about my work so people don't have to scroll through everything. Uses Gemini API with custom prompts to keep responses relevant to my actual projects and skills.",
                 image: "/ai.png",
                 tags: ["Next.js", "Gemini API", "TypeScript", "AI/ML"],
                 category: "Web Development",
-                gradient: "from-violet-500 to-purple-600",
+                gradient: "from-gray-700 to-gray-900",
                 githubUrl: "https://github.com/Archh29/francisai",
                 demoUrl: "https://francisai-gamma.vercel.app/",
               },
               {
                 title: "Hardware Management System",
                 description:
-                  "This system centralizes hardware inventory, maintenance schedules, and asset lifecycle records so equipment can be tracked in one workflow. I modeled those connected records in a single management application to make monitoring and maintenance status easier to follow; the result replaces scattered asset information with a dedicated system of record.",
+                  "Needed a way to track hardware inventory and maintenance schedules in one place instead of scattered spreadsheets. Built a system that keeps everything organized and makes it easy to see what needs attention.",
                 image: "/j7.png",
                 tags: ["Next.js", "TypeScript", "PostgreSQL", "Prisma"],
                 category: "Web Development",
-                gradient: "from-green-500 to-teal-600",
+                gradient: "from-gray-600 to-gray-800",
                 githubUrl: "#",
                 demoUrl: "#",
               },
@@ -1123,7 +1016,7 @@ I enjoy solving technical problems, learning new technologies, and building clea
                 </div>
                 <div className="p-6">
                   <motion.h3
-                    className="text-xl font-bold mb-2 group-hover:text-accent transition-colors"
+                    className="text-xl font-bold mb-2 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
                     whileHover={{ x: 5 }}
                   >
                     {project.title}
@@ -1137,7 +1030,7 @@ I enjoy solving technical problems, learning new technologies, and building clea
                         whileInView={{ opacity: 1, scale: 1 }}
                         transition={{ delay: tagIndex * 0.1 }}
                         viewport={{ once: true }}
-                        className="text-xs bg-accent/10 text-accent px-3 py-1 rounded-full border border-accent/20 hover:bg-accent/20 transition-colors"
+                        className="text-xs bg-gray-100/10 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full border border-gray-400/20 hover:bg-gray-200/20 transition-colors"
                         whileHover={{ scale: 1.05 }}
                       >
                         {tag}
@@ -1173,7 +1066,7 @@ I enjoy solving technical problems, learning new technologies, and building clea
                           size="sm"
                           className="flex items-center gap-2 bg-accent hover:bg-accent/90 text-accent-foreground relative overflow-hidden group"
                         >
-                          <motion.div className="absolute inset-0 bg-gradient-to-r from-accent to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <motion.div className="absolute inset-0 bg-gradient-to-r from-gray-700 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity" />
                           <span className="relative z-10 flex items-center gap-2">
                             <ExternalLink className="h-4 w-4" />
                             Demo
@@ -1205,10 +1098,10 @@ I enjoy solving technical problems, learning new technologies, and building clea
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              Get In Touch
+              Let's Connect
             </motion.h2>
             <motion.div
-              className="w-20 h-1 bg-gradient-to-r from-accent to-purple-500 mx-auto rounded-full"
+              className="w-20 h-1 bg-gradient-to-r from-gray-700 to-gray-900 mx-auto rounded-full"
               initial={{ width: 0 }}
               whileInView={{ width: 80 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -1224,7 +1117,7 @@ I enjoy solving technical problems, learning new technologies, and building clea
               viewport={{ once: true, margin: "-100px" }}
               className="flex-1"
             >
-              <h3 className="text-2xl font-bold mb-6">Contact Information</h3>
+              <h3 className="text-2xl font-bold mb-6">Ways to reach me</h3>
               <div className="space-y-6">
                 {[
                   {
@@ -1426,7 +1319,7 @@ I enjoy solving technical problems, learning new technologies, and building clea
                     disabled={isSubmitting}
                     className="w-full bg-accent hover:bg-accent/90 text-accent-foreground relative overflow-hidden group"
                   >
-                    <motion.div className="absolute inset-0 bg-gradient-to-r from-accent to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <motion.div className="absolute inset-0 bg-gradient-to-r from-gray-700 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       {isSubmitting ? (
                         <>
@@ -1466,15 +1359,14 @@ I enjoy solving technical problems, learning new technologies, and building clea
               <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-accent">Beyond the screen</p>
               <h2 className="text-3xl font-bold md:text-4xl">Beyond Work</h2>
               <motion.div
-                className="my-5 h-1 w-20 rounded-full bg-gradient-to-r from-accent to-purple-500"
+                className="my-5 h-1 w-20 rounded-full bg-gradient-to-r from-gray-700 to-gray-900"
                 initial={{ width: 0 }}
                 whileInView={{ width: 80 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
                 viewport={{ once: true }}
               />
               <p className="max-w-lg text-lg leading-relaxed text-muted-foreground">
-                Outside programming, I enjoy recharging through games, fitness, time with cats, and exploring the
-                technology that inspires my next project. These interests keep me curious, creative, and grounded.
+                When I'm not coding, I'm usually gaming, hanging out with my cats, or checking out new tech that might be useful for future projects. These things help me stay sane and give me fresh ideas.
               </p>
 
               <div className="mt-8 grid grid-cols-2 gap-3">
@@ -1711,7 +1603,7 @@ I enjoy solving technical problems, learning new technologies, and building clea
             <div className="flex items-center justify-between border-b border-border/50 bg-accent/10 px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-accent/40 bg-muted">
-                  <Image src="/profile1.jpeg" alt="Francis Uyguangco" fill className="object-cover" sizes="40px" />
+                  <Image src="/dp.jpg" alt="Francis Uyguangco" fill className="object-cover" sizes="40px" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Chat with Francis</p>
